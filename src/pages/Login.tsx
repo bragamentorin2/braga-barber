@@ -79,7 +79,7 @@ export function Login() {
     setError(null);
     const { error, isAdmin: userIsAdmin } = await signIn(values.email, values.password);
     if (error) {
-      setError('E-mail ou senha incorretos. Tente novamente.');
+      setError(error.message || 'E-mail ou senha incorretos. Tente novamente.');
       setIsLoading(false);
     } else {
       if (userIsAdmin) {

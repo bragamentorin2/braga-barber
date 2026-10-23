@@ -72,6 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Se não estiver conectado a um Supabase oficial, opera em modo local/desenvolvimento seguro
     if (!isSupabaseConfigured) {
+      if (import.meta.env.PROD) {
+        setSession(null);
+        setIsAdmin(false);
+        setLoading(false);
+        return;
+      }
       const savedDevAuth = localStorage.getItem('braga_dev_authenticated');
       if (savedDevAuth !== 'false') {
         setSession(LOCAL_DEV_SESSION);
@@ -109,6 +115,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const cleanEmail = email.trim().toLowerCase();
 
     if (!isSupabaseConfigured) {
+      if (import.meta.env.PROD) {
+        return {
+          error: new Error('As variáveis de ambiente do Supabase (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY) não estão configuradas na Vercel.'),
+          isAdmin: false,
+        };
+      }
       localStorage.setItem('braga_dev_authenticated', 'true');
       const isEleitoAdmin = cleanEmail === SUPERADMIN_EMAIL || cleanEmail === 'admin@bragamentoring.com.br';
       const devSession: Session = {
