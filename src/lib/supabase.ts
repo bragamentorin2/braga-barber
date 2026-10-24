@@ -1,8 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const rawUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
+const OFFICIAL_SUPABASE_URL = 'https://byjcaksviwiovjdopluk.supabase.co';
+const OFFICIAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5amNha3N2aXdpb3ZqZG9wbHVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzMDQ2MDEsImV4cCI6MjA5Njg4MDYwMX0.nRiaJ2N67ofkFzuje5VRbb0RvpwWyaYLR2OcgOlIUCc';
+
+const rawUrl = (import.meta.env.VITE_SUPABASE_URL || OFFICIAL_SUPABASE_URL).trim();
 const supabaseUrl = rawUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || OFFICIAL_SUPABASE_ANON_KEY).trim();
 
 // Verifica se o Supabase está de fato configurado com credenciais válidas do projeto Braga Mentoring
 export const isSupabaseConfigured = Boolean(
