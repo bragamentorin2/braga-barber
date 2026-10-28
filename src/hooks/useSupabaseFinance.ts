@@ -585,6 +585,16 @@ export function useSupabaseFinance() {
   };
 
   const deleteExpense = async (id: string) => {
+    if (id.startsWith('temp-prov-')) {
+      const match = id.match(/^temp-prov-(.+)-(\d{4}-\d{2})$/);
+      if (match) {
+        const provId = match[1];
+        const targetMonthId = match[2];
+        await zeroProvisionForMonth(provId, targetMonthId);
+        return;
+      }
+    }
+
     if (isSupabaseConfigured) {
       await supabase.from('expenses').delete().eq('id', id);
     }
@@ -592,6 +602,30 @@ export function useSupabaseFinance() {
   };
 
   const updateExpense = async (id: string, updates: Partial<Expense>) => {
+    if (id.startsWith('temp-prov-')) {
+      const match = id.match(/^temp-prov-(.+)-(\d{4}-\d{2})$/);
+      const provId = match ? match[1] : '';
+      const targetMonthId = match ? match[2] : (updates.monthId || '');
+      
+      if (provId && targetMonthId) {
+        // Zero a provisão recorrente neste mês específico para não duplicar
+        await zeroProvisionForMonth(provId, targetMonthId);
+      }
+      
+      const prov = expenseProvisions.find(p => p.id === provId);
+      const cat = updates.category || prov?.category || 'Outros';
+      const desc = updates.description !== undefined ? updates.description : (prov?.description || `Provisão (${cat})`);
+
+      await addExpense({
+        monthId: targetMonthId,
+        category: cat,
+        description: desc,
+        amount: updates.amount ?? (prov?.monthlyAmount || 0),
+        date: updates.date,
+      });
+      return;
+    }
+
     if (id.startsWith('temp-pl-')) {
       // Se está "editando" uma provisão de PL, converte em uma despesa real para este mês.
       // O ID tem o padrão temp-pl-${prov.id}-${monthId}, onde prov.id é UUID e monthId é YYYY-MM.
@@ -917,17 +951,43 @@ export function useSupabaseFinance() {
 
   const zeroProvisionForMonth = async (provisionId: string, monthId: string) => {
     if (!user) return;
-    // Upsert: se já existe, atualiza; senão, cria
-    const { data, error } = await supabase.from('provision_overrides').upsert({
-      user_id: user.id, provision_id: provisionId, month_id: monthId, is_zeroed: true
-    }, { onConflict: 'provision_id,month_id' }).select().single();
-    if (data && !error) {
-      setProvisionOverrides(prev => {
-        const exists = prev.find(o => o.provisionId === provisionId && o.monthId === monthId);
-        if (exists) return prev.map(o => o.provisionId === provisionId && o.monthId === monthId ? { ...o, isZeroed: true } : o);
-        return [...prev, { id: data.id, provisionId: data.provision_id, monthId: data.month_id, isZeroed: data.is_zeroed }];
-      });
+    
+    // Procura se já temos um override registrado
+    const existing = provisionOverrides.find(o => o.provisionId === provisionId && o.monthId === monthId);
+    let record: any = null;
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('provision_overrides')
+        .update({ is_zeroed: true })
+        .eq('id', existing.id)
+        .select()
+        .maybeSingle();
+      if (!error && data) record = data;
+    } else {
+      const { data, error } = await supabase
+        .from('provision_overrides')
+        .insert({
+          user_id: user.id,
+          provision_id: provisionId,
+          month_id: monthId,
+          is_zeroed: true,
+        })
+        .select()
+        .maybeSingle();
+      if (!error && data) record = data;
     }
+
+    setProvisionOverrides(prev => {
+      const exists = prev.find(o => o.provisionId === provisionId && o.monthId === monthId);
+      if (exists) return prev.map(o => o.provisionId === provisionId && o.monthId === monthId ? { ...o, isZeroed: true } : o);
+      return [...prev, {
+        id: record?.id || `override-${Date.now()}`,
+        provisionId,
+        monthId,
+        isZeroed: true,
+      }];
+    });
   };
 
   /**

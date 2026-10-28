@@ -67,6 +67,13 @@ export function Financial() {
   };
 
   const handleDeleteExpense = async (id: string) => {
+    if (id.startsWith('temp-prov-')) {
+      if (window.confirm('Tem certeza que deseja excluir esta provisão para este mês? O efeito será apenas neste mês.')) {
+        await deleteExpense(id);
+        toast.success('Provisão excluída para este mês com sucesso!');
+      }
+      return;
+    }
     if (window.confirm('Tem certeza que deseja excluir esta despesa?')) {
       await deleteExpense(id);
       toast.success('Despesa excluída com sucesso!');
@@ -447,7 +454,14 @@ export function Financial() {
                           <TableRow key={exp.id} className="hover:bg-muted/20">
                             <TableCell className="py-2.5">
                               <div className="flex flex-col gap-0.5">
-                                <span className="font-semibold text-xs sm:text-sm text-foreground">{exp.category}</span>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-semibold text-xs sm:text-sm text-foreground">{exp.category}</span>
+                                  {exp.id.startsWith('temp-prov-') && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                      Provisão
+                                    </span>
+                                  )}
+                                </div>
                                 {exp.description && (
                                   <span className="text-[10px] text-muted-foreground leading-tight truncate max-w-xs">{exp.description}</span>
                                 )}
@@ -469,8 +483,6 @@ export function Financial() {
                                     currentAmount={exp.amount}
                                   />
                                 </div>
-                              ) : exp.id.startsWith('temp-prov-') ? (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">Provisão</span>
                               ) : (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -487,7 +499,7 @@ export function Financial() {
                                           size="icon"
                                           className="h-8 w-8 text-destructive hover:bg-destructive/10"
                                           onClick={() => handleDeleteExpense(exp.id)}
-                                          title="Excluir"
+                                          title={exp.id.startsWith('temp-prov-') ? "Excluir provisão deste mês" : "Excluir"}
                                         >
                                           <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
@@ -672,7 +684,14 @@ export function Financial() {
                                 {week.expenses.map((e) => (
                                   <div key={e.id} className="p-3 flex items-center justify-between text-xs hover:bg-muted/20">
                                     <div>
-                                      <span className="font-semibold text-foreground">{e.category}</span>
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="font-semibold text-foreground">{e.category}</span>
+                                        {e.id.startsWith('temp-prov-') && (
+                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                            Provisão
+                                          </span>
+                                        )}
+                                      </div>
                                       {e.description && (
                                         <span className="text-[10px] text-muted-foreground block">{e.description}</span>
                                       )}

@@ -15,6 +15,14 @@ export function ProtectedRoute() {
     currentClientEstablishment 
   } = useBusinessProfile();
 
+  const [requireFirstAccessChange, setRequireFirstAccessChange] = useState(false);
+
+  useEffect(() => {
+    if (session?.user?.user_metadata?.must_change_password) {
+      setRequireFirstAccessChange(true);
+    }
+  }, [session]);
+
   if (loading || loadingEstablishments) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#04080C] text-foreground">
@@ -141,14 +149,6 @@ export function ProtectedRoute() {
   }
 
   // 5. Cliente com acesso liberado e ativo
-  const [requireFirstAccessChange, setRequireFirstAccessChange] = useState(false);
-
-  useEffect(() => {
-    if (session?.user?.user_metadata?.must_change_password) {
-      setRequireFirstAccessChange(true);
-    }
-  }, [session]);
-
   return (
     <>
       <FirstAccessModal

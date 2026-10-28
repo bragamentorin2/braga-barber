@@ -38,6 +38,7 @@ export function EditExpenseDialog({ expense }: { expense: Expense }) {
   }, [expenseCategories]);
 
   const isPL = expense.id.startsWith("temp-pl-");
+  const isProv = expense.id.startsWith("temp-prov-");
 
   const canGoPrev = () => {
     const [y, m] = monthId.split('-').map(Number);
@@ -96,7 +97,7 @@ export function EditExpenseDialog({ expense }: { expense: Expense }) {
     
     setSaving(false);
     setOpen(false);
-    toast.success("Despesa atualizada com sucesso!");
+    toast.success(isProv ? "Provisão deste mês atualizada com sucesso!" : "Despesa atualizada com sucesso!");
   };
 
   const handleOpen = (v: boolean) => {
@@ -113,14 +114,26 @@ export function EditExpenseDialog({ expense }: { expense: Expense }) {
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted">
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted" title={isProv ? "Editar provisão neste mês" : "Editar"}>
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[420px] max-w-[95vw]">
         <DialogHeader>
-          <DialogTitle>Editar {isPL ? "Provisão PL" : "Despesa"}</DialogTitle>
+          <DialogTitle>
+            {isPL ? "Editar Provisão PL" : isProv ? `Editar Provisão (${formatMonthDisplay(expense.monthId)})` : "Editar Despesa"}
+          </DialogTitle>
         </DialogHeader>
+
+        {isProv && (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200 space-y-1">
+            <p className="font-semibold text-amber-300">ℹ️ Efeito exclusivo para este mês</p>
+            <p>
+              Esta alteração será aplicada <strong>apenas em {formatMonthDisplay(expense.monthId)}</strong>. A configuração padrão da provisão continuará vigente nos demais meses.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           {!isPL && (
             <div className="space-y-1">
