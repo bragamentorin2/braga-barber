@@ -19,6 +19,8 @@ import {
   Plus,
   Scale,
   CalendarCheck,
+  CalendarDays,
+  Users,
   ArrowRight,
   Sliders,
   Award,
@@ -228,191 +230,349 @@ export function Projections() {
             {/* COLUNA ESQUERDA: PARÂMETROS DE TRABALHO (5 COLUNAS) */}
             <div className="lg:col-span-5 space-y-4">
               
-              {/* Card 1: Atendimento na Cadeira */}
-              <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-4">
+              {/* CARD 1: Preço Médio por Corte / Serviço */}
+              <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-3.5 hover:border-emerald-500/30 transition-all">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                  <div className="flex items-center gap-2 font-bold text-sm text-foreground">
-                    <Scissors className="w-4 h-4 text-primary" />
-                    Atendimento na Cadeira
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                      <Scissors className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-foreground leading-none">
+                        Preço Médio por Corte
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Ticket médio cobrado por corte ou combo
+                      </p>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleApplyCatalog}
-                    className="h-7 text-xs text-primary hover:bg-primary/10 px-2 gap-1"
+                    className="h-7 text-xs text-emerald-400 hover:bg-emerald-500/10 px-2 gap-1.5 shrink-0"
                     title="Puxar ticket médio do catálogo cadastrado"
                   >
                     <RefreshCw className="w-3 h-3" />
-                    Usar Catálogo
+                    <span className="hidden sm:inline">Usar Catálogo</span>
                   </Button>
                 </div>
 
-                {/* Preço do Corte */}
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-foreground">Valor Médio por Corte / Serviço</span>
-                    <span className="font-bold text-sm text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                      {formatBRL(servicePrice)}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {[40, 50, 60, 75].map((val) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setServicePrice(val)}
-                        className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all border ${
-                          servicePrice === val
-                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                            : 'bg-muted/30 text-muted-foreground border-border hover:bg-muted/60 hover:text-foreground'
-                        }`}
-                      >
-                        R$ {val}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="pt-1">
-                    <input
-                      type="range"
-                      min="25"
-                      max="150"
-                      step="5"
-                      value={servicePrice}
-                      onChange={(e) => setServicePrice(Number(e.target.value))}
-                      className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                    />
-                  </div>
-                </div>
-
-                {/* Clientes por Dia */}
-                <div className="space-y-2 pt-2 border-t border-border/40">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-foreground">Quantos Clientes Atendidos por Dia?</span>
-                    <span className="font-bold text-sm text-primary">
-                      {clientsPerDay} clientes/dia
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 shrink-0 rounded-lg"
-                      onClick={() => setClientsPerDay(Math.max(1, clientsPerDay - 1))}
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </Button>
-                    <input
-                      type="range"
+                {/* Seletor padronizado: [-] [Input Central] [+] */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all"
+                    onClick={() => setServicePrice(Math.max(1, servicePrice - 5))}
+                    title="Diminuir R$ 5"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <div className="relative flex-1">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">R$</span>
+                    <Input
+                      type="number"
                       min="1"
-                      max="22"
+                      max="2000"
                       step="1"
-                      value={clientsPerDay}
-                      onChange={(e) => setClientsPerDay(Number(e.target.value))}
-                      className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                      value={servicePrice === 0 ? '' : servicePrice}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 0 : Number(e.target.value);
+                        setServicePrice(Math.max(0, val));
+                      }}
+                      className="h-9 text-center text-sm font-bold text-emerald-400 bg-emerald-500/5 border-emerald-500/20 focus-visible:ring-emerald-500"
+                      placeholder="0"
                     />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8 shrink-0 rounded-lg"
-                      onClick={() => setClientsPerDay(Math.min(30, clientsPerDay + 1))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/30 transition-all"
+                    onClick={() => setServicePrice(servicePrice + 5)}
+                    title="Aumentar R$ 5"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Atalhos Rápidos */}
+                <div className="grid grid-cols-4 gap-1.5 pt-0.5">
+                  {[35, 50, 70, 100].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setServicePrice(val)}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all border ${
+                        servicePrice === val
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-sm'
+                          : 'bg-muted/30 text-muted-foreground border-border hover:bg-muted/60 hover:text-foreground'
+                      }`}
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Dias Trabalhados */}
-                <div className="space-y-2 pt-2 border-t border-border/40">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-foreground">Dias Trabalhados no Mês</span>
-                    <span className="font-bold text-xs text-foreground">{workDays} dias/mês</span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { label: '20 dias', desc: 'Seg a Sex', val: 20 },
-                      { label: '24 dias', desc: 'Seg a Sáb', val: 24 },
-                      { label: '26 dias', desc: 'Folga 1x', val: 26 },
-                    ].map((p) => (
-                      <button
-                        key={p.val}
-                        type="button"
-                        onClick={() => setWorkDays(p.val)}
-                        className={`p-2 rounded-xl text-center transition-all border flex flex-col items-center ${
-                          workDays === p.val
-                            ? 'bg-primary/10 border-primary text-primary font-bold'
-                            : 'bg-muted/20 border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                        }`}
-                      >
-                        <span className="text-xs font-bold">{p.label}</span>
-                        <span className="text-[10px] opacity-70">{p.desc}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-muted/30 border border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Capacidade total no mês:</span>
-                  <span className="font-bold text-foreground">{totalClients} atendimentos</span>
+                      R$ {val}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Card 2: Custos Fixos Mensais */}
-              <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-4">
+              {/* CARD 2: Clientes Atendidos por Dia */}
+              <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-3.5 hover:border-primary/30 transition-all">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                  <div className="flex items-center gap-2 font-bold text-sm text-foreground">
-                    <Scale className="w-4 h-4 text-amber-400" />
-                    Custos Fixos Mensais
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-foreground leading-none">
+                        Clientes por Dia
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Média de atendimentos diários na cadeira
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 shrink-0">
+                    {clientsPerDay} {clientsPerDay === 1 ? 'cliente/dia' : 'clientes/dia'}
+                  </span>
+                </div>
+
+                {/* Seletor padronizado: [-] [Input Central] [+] */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all"
+                    onClick={() => setClientsPerDay(Math.max(1, clientsPerDay - 1))}
+                    title="Diminuir 1 cliente"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <div className="relative flex-1">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="50"
+                      step="1"
+                      value={clientsPerDay === 0 ? '' : clientsPerDay}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 0 : Number(e.target.value);
+                        setClientsPerDay(Math.max(0, val));
+                      }}
+                      className="h-9 text-center text-sm font-bold text-foreground"
+                      placeholder="Ex: 8"
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all"
+                    onClick={() => setClientsPerDay(Math.min(50, clientsPerDay + 1))}
+                    title="Aumentar 1 cliente"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Atalhos Rápidos */}
+                <div className="grid grid-cols-4 gap-1.5 pt-0.5">
+                  {[5, 8, 10, 12].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setClientsPerDay(val)}
+                      className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all border ${
+                        clientsPerDay === val
+                          ? 'bg-primary/20 text-primary border-primary/50 shadow-sm'
+                          : 'bg-muted/30 text-muted-foreground border-border hover:bg-muted/60 hover:text-foreground'
+                      }`}
+                    >
+                      {val} / dia
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* CARD 3: Dias Trabalhados no Mês */}
+              <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-3.5 hover:border-sky-500/30 transition-all">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0">
+                      <CalendarDays className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-foreground leading-none">
+                        Dias Trabalhados no Mês
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Jornada mensal de abertura da barbearia
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-xs text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/20 shrink-0">
+                    {workDays} {workDays === 1 ? 'dia/mês' : 'dias/mês'}
+                  </span>
+                </div>
+
+                {/* Seletor padronizado: [-] [Input Central] [+] */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-sky-500/10 hover:text-sky-400 hover:border-sky-500/30 transition-all"
+                    onClick={() => setWorkDays(Math.max(1, workDays - 1))}
+                    title="Diminuir 1 dia"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <div className="relative flex-1">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="31"
+                      step="1"
+                      value={workDays === 0 ? '' : workDays}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 0 : Number(e.target.value);
+                        setWorkDays(Math.min(31, Math.max(0, val)));
+                      }}
+                      className="h-9 text-center text-sm font-bold text-foreground"
+                      placeholder="Ex: 20"
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-sky-500/10 hover:text-sky-400 hover:border-sky-500/30 transition-all"
+                    onClick={() => setWorkDays(Math.min(31, workDays + 1))}
+                    title="Aumentar 1 dia"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Atalhos Rápidos com opções sugeridas */}
+                <div className="grid grid-cols-3 gap-2 pt-0.5">
+                  {[
+                    { label: '20 dias', desc: 'Seg a Sex', val: 20 },
+                    { label: '24 dias', desc: 'Seg a Sáb', val: 24 },
+                    { label: '26 dias', desc: 'Folga 1x', val: 26 },
+                  ].map((p) => (
+                    <button
+                      key={p.val}
+                      type="button"
+                      onClick={() => setWorkDays(p.val)}
+                      className={`p-2.5 rounded-xl text-center transition-all border flex flex-col items-center ${
+                        workDays === p.val
+                          ? 'bg-sky-500/15 border-sky-500/50 text-sky-400 font-bold shadow-sm'
+                          : 'bg-muted/20 border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                      }`}
+                    >
+                      <span className="text-xs font-bold">{p.label}</span>
+                      <span className="text-[10px] opacity-70">{p.desc}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Resumo da capacidade resultante */}
+                <div className="p-3 rounded-xl bg-muted/40 border border-border/70 flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 text-sky-400" />
+                    Capacidade total no mês:
+                  </span>
+                  <span className="font-extrabold text-foreground text-sm">{totalClients} atendimentos</span>
+                </div>
+              </div>
+
+              {/* CARD 4: Custos Fixos Mensais */}
+              <div className="p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-3.5 hover:border-amber-500/30 transition-all">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                      <Scale className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-foreground leading-none">
+                        Custos Fixos Mensais
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Aluguel, Luz, Água, DAS/MEI, Internet, etc.
+                      </p>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={handleApplyProvisions}
-                    className="h-7 text-xs text-amber-400 hover:bg-amber-400/10 px-2 gap-1"
+                    className="h-7 text-xs text-amber-400 hover:bg-amber-400/10 px-2 gap-1.5 shrink-0"
                     title="Puxar soma das provisões do módulo financeiro"
                   >
                     <RefreshCw className="w-3 h-3" />
-                    Puxar Financeiro
+                    <span className="hidden sm:inline">Puxar Financeiro</span>
                   </Button>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground">Aluguel, Luz, Água, DAS/MEI, Internet, etc.</span>
-                    <span className="font-bold text-sm text-amber-400">{formatBRL(fixedExpenses)}</span>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {[4000, 6000, 8000, 10000].map((val) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setFixedExpenses(val)}
-                        className={`py-1.5 px-1.5 rounded-lg text-xs font-semibold transition-all border ${
-                          fixedExpenses === val
-                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm'
-                            : 'bg-muted/30 text-muted-foreground border-border hover:bg-muted/60 hover:text-foreground'
-                        }`}
-                      >
-                        {formatBRL(val)}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="pt-1">
-                    <input
-                      type="range"
-                      min="2000"
-                      max="18000"
-                      step="500"
-                      value={fixedExpenses}
-                      onChange={(e) => setFixedExpenses(Number(e.target.value))}
-                      className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-amber-500"
+                {/* Seletor padronizado: [-] [Input Central] [+] */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/30 transition-all"
+                    onClick={() => setFixedExpenses(Math.max(0, fixedExpenses - 250))}
+                    title="Diminuir R$ 250"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <div className="relative flex-1">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">R$</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100000"
+                      step="50"
+                      value={fixedExpenses === 0 ? '' : fixedExpenses}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 0 : Number(e.target.value);
+                        setFixedExpenses(Math.max(0, val));
+                      }}
+                      className="h-9 text-center text-sm font-bold text-amber-400 bg-amber-500/5 border-amber-500/20 focus-visible:ring-amber-500"
+                      placeholder="0"
                     />
                   </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="h-9 w-9 shrink-0 rounded-xl hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/30 transition-all"
+                    onClick={() => setFixedExpenses(fixedExpenses + 250)}
+                    title="Aumentar R$ 250"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Atalhos Rápidos com faixas menores e comuns */}
+                <div className="grid grid-cols-4 gap-1.5 pt-0.5">
+                  {[1000, 2500, 5000, 8000].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setFixedExpenses(val)}
+                      className={`py-1.5 px-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                        fixedExpenses === val
+                          ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm'
+                          : 'bg-muted/30 text-muted-foreground border-border hover:bg-muted/60 hover:text-foreground'
+                      }`}
+                    >
+                      {formatBRL(val)}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -802,7 +962,7 @@ export function Projections() {
                 Resumo Comparativo dos Cenários
               </h4>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/40 scrollbar-track-transparent">
                 <table className="w-full text-xs text-left">
                   <thead>
                     <tr className="border-b border-border text-muted-foreground">
